@@ -8,12 +8,14 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MonoLocalBinds #-}
+{-# LANGUAGE RankNTypes #-}
 
 module Abstract where
 
 import Expressions
 
 import Language.Haskell.TH
+import Data.Map (Map)
 
 ---------------
 -- Semirings --
@@ -201,3 +203,9 @@ abstractDStagedExtract ::
   Expr (TExpQ v) ->
   TExpQ e
 abstractDStagedExtract env exp = [|| eCW $$(abstractDStaged env exp) ||]
+
+type ExtractedStagedAD v d =
+  (Ord v, Semiring d) =>
+  (TExpQ v -> TExpQ d) ->
+  Expr (TExpQ v) ->
+  TExpQ (Map v d)

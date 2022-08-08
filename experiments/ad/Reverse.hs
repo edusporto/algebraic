@@ -100,7 +100,7 @@ reverseADStagedExtract ::
   (TExpQ v -> TExpQ d) ->
   Expr (TExpQ v) ->
   TExpQ (Map v d)
-reverseADStagedExtract env exp = [|| sparseSA $ absHom $ eCW $$(reverseADStaged env exp) ||]
+reverseADStagedExtract env exp = [|| (sparseSA . absHom . eCW) $$(reverseADStaged env exp) ||]
 
 -- example
 
@@ -124,25 +124,57 @@ absEndo (E f) = f mempty
 instance Semigroup (Endo e) where
   E f <> E g = E (g . f)
 
+instance Semigroup (TExpQ (Endo e)) where
+  (<>) e1 e2 = [|| let (E f) = $$e1
+                       (E g) = $$e2
+                    in E (g . f) ||]
+
 instance Monoid (Endo e) where
   mempty = E id
 
+instance Monoid (TExpQ (Endo e)) where
+  mempty = [|| E id ||]
+
 instance Module d e => Module d (Endo e) where
   d `sact` E f = E (\e -> f (d `sact` e))
+
+instance Module d e => Module (TExpQ d) (TExpQ (Endo e)) where
+  d `sact` e2 = [|| let (E f) = $$e2
+                     in E (\e -> f ($$d `sact` e)) ||]
 
 -- optimized version
 
 instance (Ord v, Semiring d) => Kronecker v d (Hom d (Endo (Sparse v (SemiringAsAlgebra d)))) where
   delta v = Hom (\d -> E (\e -> Sparse (insertWith plus v (SA d) (sparse e))))
 
+instance (Ord v, Semiring d) =>
+  Kronecker (TExpQ v)
+            (TExpQ d)
+            (TExpQ (Hom d (Endo (Sparse v (SemiringAsAlgebra d))))) where
+  delta v = [|| Hom (\d -> E (\e -> Sparse (insertWith plus $$v (SA d) (sparse e)))) ||]
+
 reverseADEndo :: (Ord v, Semiring d) =>
   (v -> d) -> Expr v -> CliffordWeil d (Hom d (Endo (SparseSA v d)))
 reverseADEndo = abstractD
+
+reverseADEndoStaged ::
+  (Ord v, Semiring d) =>
+  (TExpQ v -> TExpQ d) ->
+  Expr (TExpQ v) ->
+  TExpQ (CliffordWeil d (Hom d (Endo (SparseSA v d))))
+reverseADEndoStaged = abstractDStaged
 
 -- with extraction function
 
 reverseADEndoExtract :: (Ord v, Semiring d) => (v -> d) -> Expr v -> Map v d
 reverseADEndoExtract gen = sparseSA . absEndo . absHom . eCW . reverseADEndo gen
+
+reverseADEndoStagedExtract ::
+  (Ord v, Semiring d) =>
+  (TExpQ v -> TExpQ d) ->
+  Expr (TExpQ v) ->
+  TExpQ (Map v d)
+reverseADEndoStagedExtract env exp = [|| (sparseSA . absEndo . absHom . eCW) $$(reverseADEndoStaged env exp) ||]
 
 -- example
 
@@ -160,8 +192,16 @@ newtype SM d m = SM { sm :: m () }
 instance Monad m => Semigroup (SM d m) where
   SM com <> SM com' = SM (com >> com')
 
+instance Monad m => Semigroup (TExpQ (SM d m)) where
+  e1 <> e2 = [|| let (SM com)  = $$e1 
+                     (SM com') = $$e2 
+                  in SM (com >> com') ||]
+
 instance Monad m => Monoid (SM d m) where
   mempty = SM $ return ()
+
+instance Monad m => Monoid (TExpQ (SM d m)) where
+  mempty = [|| SM $ return () ||]
 
 -- reader monad combined with array monad
 
@@ -175,11 +215,31 @@ modifyArrayAt f v = do arr <- ask; a <- readArray arr v ; writeArray arr v (f a)
 instance (Algebra d e, MReadArray arr v e m) => Module d (SM d m) where
   d `sact` com = SM $ do sm com; arr <- ask; b <- getBounds arr ; forM_ (range b) (modifyArrayAt (d `sact`))
 
+instance (Algebra d e, MReadArray arr v e m) =>
+  Module (TExpQ d) (TExpQ (SM d m)) where
+  e1 `sact` e2 = [|| let d = $$e1
+                         com = $$e2
+                      in SM $ do
+                         sm com
+                         arr <- ask
+                         b <- getBounds arr
+                         forM_ (range b) (modifyArrayAt (d `sact`)) ||]
+
 instance (Algebra d e, MReadArray arr v e m) => Kronecker v d (SM d m) where
   delta v = SM $ modifyArrayAt (`mappend` one) v
 
+instance (Algebra d e, MReadArray arr v e m) =>
+  Kronecker (TExpQ v) (TExpQ d) (TExpQ (SM d m)) where
+  delta v = [|| SM $ modifyArrayAt (`mappend` one) $$v ||]
+
 instance (Algebra d e, MReadArray arr v e m) => Kronecker v d (Hom d (SM d m)) where
   delta v = Hom (\d -> SM $ modifyArrayAt (`mappend` (shom d)) v)
+
+instance (Algebra d e, MReadArray arr v e m) =>
+  Kronecker (TExpQ v)
+            (TExpQ d)
+            (TExpQ (Hom d (SM d m))) where
+  delta v = [|| Hom (\d -> SM $ modifyArrayAt (`mappend` (shom d)) $$v) ||]
 
 -- reverseAD
 
@@ -187,10 +247,24 @@ reverseADArray :: (Algebra d e, MReadArray arr v e m)
                 => (v -> d) -> Expr v -> CliffordWeil d (Hom d (SM d m))
 reverseADArray = abstractD
 
+reverseADArrayStaged ::
+  (Algebra d e, MReadArray arr v e m) =>
+  (TExpQ v -> TExpQ d) ->
+  Expr (TExpQ v) ->
+  TExpQ (CliffordWeil d (Hom d (SM d m)))
+reverseADArrayStaged = abstractDStaged
+
 -- with extraction functions
 
-reverseADArrayExtract  :: (Algebra d e, MReadArray arr v e m) => (v -> d) -> Expr v -> SM d m
+reverseADArrayExtract :: (Algebra d e, MReadArray arr v e m) => (v -> d) -> Expr v -> SM d m
 reverseADArrayExtract gen = absHom . eCW . reverseADArray gen
+
+reverseADArrayStagedExtract ::
+  (Algebra d e, MReadArray arr v e m) =>
+  (TExpQ v -> TExpQ d) ->
+  Expr (TExpQ v) ->
+  TExpQ (SM d m)
+reverseADArrayStagedExtract env exp = [|| (absHom . eCW) $$(reverseADArrayStaged env exp) ||]
 
 -- for IO
 
@@ -199,6 +273,18 @@ reverseAD_CY_IO_extract gen e rng = do (arr :: IOArray v (SemiringAsAlgebra d)) 
                                        runReaderT (sm $ reverseADArrayExtract gen e) arr
                                        m <- getAssocs arr
                                        return $ map sa $ fromAscList m
+
+reverseAD_CY_IO_Staged_Extract ::
+  forall v d. (Ix v, Semiring d) =>
+  (TExpQ v -> TExpQ d) ->
+  Expr (TExpQ v) ->
+  TExpQ (v, v)
+  -> TExpQ (IO (Map v d))
+reverseAD_CY_IO_Staged_Extract gen e rng = [|| do 
+  (arr :: IOArray v (SemiringAsAlgebra d)) <- newArray $$rng zero
+  runReaderT (sm $$(reverseADArrayStagedExtract gen e)) arr
+  m <- getAssocs arr
+  return $ map sa $ fromAscList m ||]
 
 instance MArray arr e m => MArray arr e (ReaderT x m) where
    getBounds = lift . getBounds
