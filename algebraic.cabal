@@ -33,6 +33,7 @@ library
       PrettyPrinting
       Reverse
       Semiring
+      SizedMat
       Utils
   other-modules:
       Paths_algebraic
@@ -49,11 +50,16 @@ library
       DerivingVia
       UndecidableInstances
       ScopedTypeVariables
+      DataKinds
+      KindSignatures
+      StandaloneKindSignatures
+      TypeApplications
   build-depends:
       base >=4.7 && <5
     , containers
     , criterion
     , deepseq
+    , hmatrix
   default-language: Haskell2010
 
 executable algebraic-exe
@@ -73,6 +79,10 @@ executable algebraic-exe
       DerivingVia
       UndecidableInstances
       ScopedTypeVariables
+      DataKinds
+      KindSignatures
+      StandaloneKindSignatures
+      TypeApplications
   ghc-options: -threaded -rtsopts -O2 -with-rtsopts=-N
   build-depends:
       algebraic
@@ -80,6 +90,7 @@ executable algebraic-exe
     , containers
     , criterion
     , deepseq
+    , hmatrix
   default-language: Haskell2010
 
 test-suite algebraic-test
@@ -100,6 +111,10 @@ test-suite algebraic-test
       DerivingVia
       UndecidableInstances
       ScopedTypeVariables
+      DataKinds
+      KindSignatures
+      StandaloneKindSignatures
+      TypeApplications
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       algebraic
@@ -107,4 +122,5 @@ test-suite algebraic-test
     , containers
     , criterion
     , deepseq
+    , hmatrix
   default-language: Haskell2010

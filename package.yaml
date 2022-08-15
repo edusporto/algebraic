@@ -23,6 +23,7 @@ dependencies:
 - containers
 - deepseq
 - criterion
+- hmatrix
 
 default-extensions:
 - MultiParamTypeClasses
@@ -35,6 +36,10 @@ default-extensions:
 - DerivingVia
 - UndecidableInstances
 - ScopedTypeVariables
+- DataKinds
+- KindSignatures
+- StandaloneKindSignatures
+- TypeApplications
 
 library:
   source-dirs: src
