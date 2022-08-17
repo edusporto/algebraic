@@ -54,6 +54,9 @@ library
       KindSignatures
       StandaloneKindSignatures
       TypeApplications
+      GADTs
+      QuantifiedConstraints
+      RankNTypes
   build-depends:
       base >=4.7 && <5
     , containers
@@ -83,6 +86,9 @@ executable algebraic-exe
       KindSignatures
       StandaloneKindSignatures
       TypeApplications
+      GADTs
+      QuantifiedConstraints
+      RankNTypes
   ghc-options: -threaded -rtsopts -O2 -with-rtsopts=-N
   build-depends:
       algebraic
@@ -115,6 +121,9 @@ test-suite algebraic-test
       KindSignatures
       StandaloneKindSignatures
       TypeApplications
+      GADTs
+      QuantifiedConstraints
+      RankNTypes
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       algebraic

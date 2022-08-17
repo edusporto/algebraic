@@ -40,6 +40,9 @@ default-extensions:
 - KindSignatures
 - StandaloneKindSignatures
 - TypeApplications
+- GADTs
+- QuantifiedConstraints
+- RankNTypes
 
 library:
   source-dirs: src
