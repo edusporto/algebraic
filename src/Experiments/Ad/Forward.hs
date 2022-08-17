@@ -7,14 +7,14 @@
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Redundant bracket" #-}
 
-module Forward where
+module Experiments.Ad.Forward where
 
 import Data.Map
 import Prelude hiding (map)
 
 
-import Expressions
-import Abstract
+import Experiments.Ad.Expressions
+import Experiments.Ad.Abstract
 
 -------------------------------
 -- Classical forward-mode AD --

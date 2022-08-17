@@ -1,5 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 
+module Experiments.TH.Example where
+
 import Language.Haskell.TH
 
 add1 :: Int -> Q Exp

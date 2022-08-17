@@ -6,17 +6,17 @@
 {-# HLINT ignore "Use const" #-}
 
 
-module Test where
+module Experiments.Ad.Test where
 
 import Language.Haskell.TH
 import Data.Map
-
-import Expressions
-import Abstract
-import Forward
-import Reverse
 import Data.Array.IO
 import Control.Monad.Reader
+
+import Experiments.Ad.Expressions
+import Experiments.Ad.Abstract
+import Experiments.Ad.Forward
+import Experiments.Ad.Reverse
 
 -- >>> reverseADExtract (\X -> 5) example3
 -- fromList [(X,170)]

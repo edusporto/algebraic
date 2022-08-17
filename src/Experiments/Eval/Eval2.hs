@@ -7,7 +7,7 @@
 {-# HLINT ignore "Use const" #-}
 {-# HLINT ignore "Use tuple-section" #-}
 
-module Eval2 where
+module Experiments.Eval.Eval2 where
 
 import Language.Haskell.TH
 
@@ -30,7 +30,7 @@ eval _   (Lit n) = lit n
 eval var (Add e1 e2) = eval var e1 `add` eval var e2
 eval var (Mul e1 e2) = eval var e1 `mul` eval var e2
 
-instance Eval (TExpQ Int -> TExpQ (Int, Int)) where
+instance Eval (Code Q Int -> Code Q (Int, Int)) where
   var     = \v -> [|| ($$v, 1) ||]
   lit n   = \v -> [|| (n, 0) ||]
   add f g = \v -> [|| let (x, dx) = $$(f v)

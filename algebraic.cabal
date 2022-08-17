@@ -25,6 +25,21 @@ source-repository head
 library
   exposed-modules:
       Abstract
+      Experiments.Ad.Abstract
+      Experiments.Ad.Benchmarks
+      Experiments.Ad.Expressions
+      Experiments.Ad.Forward
+      Experiments.Ad.Reverse
+      Experiments.Ad.Test
+      Experiments.Eval.Eval
+      Experiments.Eval.Eval2
+      Experiments.TH.AD
+      Experiments.TH.Dec
+      Experiments.TH.Example
+      Experiments.TH.Hutton
+      Experiments.TH.TestAD
+      Experiments.TH.TestTH
+      Experiments.TH.TuplesTH
       Expression
       FnSpace
       Forward
@@ -50,11 +65,17 @@ library
       DerivingVia
       UndecidableInstances
       ScopedTypeVariables
+  other-extensions:
+      TemplateHaskell
   build-depends:
-      base >=4.7 && <5
+      array
+    , base >=4.7 && <5
     , containers
     , criterion
     , deepseq
+    , ghc-prof
+    , mtl
+    , template-haskell
   default-language: Haskell2010
 
 executable algebraic-exe
@@ -74,13 +95,19 @@ executable algebraic-exe
       DerivingVia
       UndecidableInstances
       ScopedTypeVariables
+  other-extensions:
+      TemplateHaskell
   ghc-options: -threaded -rtsopts -O2 -with-rtsopts=-N
   build-depends:
       algebraic
+    , array
     , base >=4.7 && <5
     , containers
     , criterion
     , deepseq
+    , ghc-prof
+    , mtl
+    , template-haskell
   default-language: Haskell2010
 
 test-suite algebraic-test
@@ -101,11 +128,17 @@ test-suite algebraic-test
       DerivingVia
       UndecidableInstances
       ScopedTypeVariables
+  other-extensions:
+      TemplateHaskell
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       algebraic
+    , array
     , base >=4.7 && <5
     , containers
     , criterion
     , deepseq
+    , ghc-prof
+    , mtl
+    , template-haskell
   default-language: Haskell2010

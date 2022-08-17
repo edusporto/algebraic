@@ -3,7 +3,7 @@
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Redundant bracket" #-}
 
-module Expressions where
+module Experiments.Ad.Expressions where
 
 import Data.Array (Ix)
 import Data.Array.IO
@@ -46,7 +46,7 @@ rangeX = (X,X)
 example1 :: Expr X
 example1 = Times (Var X) (Plus (Var X) One)
 
-example1Staged :: Expr (TExpQ X)
+example1Staged :: Expr (Code Q X)
 example1Staged = Times (Var [||X||]) (Plus (Var [||X||]) One)
 
 -- example 2

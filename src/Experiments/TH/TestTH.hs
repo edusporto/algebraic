@@ -4,12 +4,14 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RecordWildCards #-}
 
+module Experiments.TH.TestTH where
+
 import Language.Haskell.TH
 
-import TuplesTH
-import Dec
+import Experiments.TH.TuplesTH
+import Experiments.TH.Dec
+import Experiments.TH.Hutton
 
-import Hutton
 import Data.Functor.Identity
 
 $someSplice

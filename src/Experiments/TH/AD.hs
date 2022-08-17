@@ -10,7 +10,7 @@
 {-# HLINT ignore "Use id" #-}
 {-# HLINT ignore "Use tuple-section" #-}
 
-module AD where
+module Experiments.TH.AD where
 
 import Language.Haskell.TH
 
@@ -89,17 +89,17 @@ forwardAD var x = eval gen
 -- (5 * (5 + 1), ((5 + 1) * 1) + (1 * (5 + 1)))
 
 -- Still not what we want!
--- >>> (x, dx) = forwardAD (\x -> [|| 5 ||]) X example1 :: (TExpQ Int, TExpQ Int)
+-- >>> (x, dx) = forwardAD (\x -> [|| 5 ||]) X example1 :: (Code Q Int, Code Q Int)
 -- >>> ($$x, $$dx)
 -- (30,11)
 
-instance Semiring d => Semiring (TExpQ d) where
+instance Semiring d => Semiring (Code Q d) where
   zero = [|| zero ||]
   one  = [|| one ||]
   add x y = [|| $$x `add` $$y ||]
   mul x y = [|| $$x `mul` $$y ||]
 
--- instance Semiring d => Semiring (TExpQ (Dual d)) where
+-- instance Semiring d => Semiring (Code Q (Dual d)) where
 --   zero = [|| (zero, zero) ||]
 --   one  = [|| (one,  zero) ||]
 --   add e1 e2 = [|| let (f, df) = $$e1
@@ -111,21 +111,21 @@ instance Semiring d => Semiring (TExpQ d) where
 
 forwardADStaged ::
   (Eq v, Semiring d) =>
-  (TExpQ v -> TExpQ d) ->
-  TExpQ v ->
-  Expr (TExpQ v) ->
-  TExpQ (Dual d)
+  (Code Q v -> Code Q d) ->
+  Code Q v ->
+  Expr (Code Q v) ->
+  Code Q (Dual d)
 forwardADStaged var x = eval gen
   where
     gen y = [|| ($$(var y), $$(partialDerive x y)) ||]
     partialDerive x y = [|| if $$x == $$y then one else zero ||]
 
-example2 :: Expr (TExpQ X)
+example2 :: Expr (Code Q X)
 example2 = Mul (Var [||X||]) (Add (Var [||X||]) One)
 
--- >>> result = forwardADStaged (\x -> [||5||]) [||X||] example2 :: TExpQ (Int, Int)
+-- >>> result = forwardADStaged (\x -> [||5||]) [||X||] example2 :: Code Q (Int, Int)
 -- >>> $$(result)
--- Variable not in scope: example2 :: Expr (TExpQ X)
+-- Variable not in scope: example2 :: Expr (Code Q X)
 
 -------------------------------------------------------
 -- 2.2 Algebraic Structures

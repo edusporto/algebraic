@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Dec where
+module Experiments.TH.Dec where
 
 import Language.Haskell.TH
 

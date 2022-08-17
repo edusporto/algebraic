@@ -5,7 +5,7 @@
 
 -- https://mpickering.github.io/posts/2019-02-14-stage-3.html
 
-module Hutton where
+module Experiments.TH.Hutton where
 
 import Language.Haskell.TH
 import Language.Haskell.TH.Syntax
@@ -17,7 +17,7 @@ eval1 :: Applicative m => Expr -> m Int
 eval1 (Val n) = pure n
 eval1 (Add e1 e2) = (+) <$> eval1 e1 <*> eval1 e2
 
-eval2 :: Expr -> TExpQ Int
+eval2 :: Expr -> Code Q Int
 eval2 (Val n) = [||n||]
 eval2 (Add e1 e2) = [||$$(eval2 e1) + $$(eval2 e2)||]
 
@@ -26,19 +26,19 @@ eval2 (Add e1 e2) = [||$$(eval2 e1) + $$(eval2 e2)||]
 
 data WithCode a = WithCode
   { _val :: a,
-    _code :: TExpQ a
+    _code :: Code Q a
   }
 
 data SynApplicative a where
   Return :: WithCode a -> SynApplicative a
   App    :: SynApplicative (a -> b) -> SynApplicative a -> SynApplicative b
 
--- liftT :: Lift a => a -> TExpQ a
+-- liftT :: Lift a => a -> Code Q a
 -- liftT = unsafeTExpCoerce . lift
 
 codePlus = [|| (+) ||]
 
-elimExpr :: Expr -> TExpQ (SynApplicative Int)
+elimExpr :: Expr -> Code Q (SynApplicative Int)
 elimExpr (Val n) = [|| Return (WithCode n (liftTyped n)) ||]
 elimExpr (Add e1 e2) =
     [|| Return (WithCode (+) codePlus)
@@ -54,7 +54,7 @@ data ApplicativeDict m =
 elimApplicative
   :: SynApplicative a
   -> ApplicativeDict m
-  -> TExpQ (m a)
+  -> Code Q (m a)
 
 elimApplicative (Return v) d@ApplicativeDict{..}
   = [|| $$(_code _return) $$(_code v) ||]

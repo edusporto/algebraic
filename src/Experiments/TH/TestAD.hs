@@ -5,19 +5,21 @@
 {-# HLINT ignore "Use id" #-}
 {-# HLINT ignore "Use tuple-section" #-}
 
-import AD
+module Experiments.TH.TestAD where
+
+import Experiments.TH.AD
 import Language.Haskell.TH
 
 fun :: Int -> (Int, Int)
-fun = $$([||\y -> $$(forwardADStaged (\x -> [||y||]) [||X||] example2 :: TExpQ (Int, Int))||])
+fun = $$([||\y -> $$(forwardADStaged (\x -> [||y||]) [||X||] example2 :: Code Q (Int, Int))||])
 
--- NO custom Semiring (TExpQ (Dual d))
+-- NO custom Semiring (Code Q (Dual d))
 -- fun :: Int -> (Int, Int)
 -- fun = \y
 --   -> ((y, if (X == X) then one else zero)
 --         `mul` ((y, if (X == X) then one else zero) `add` one))
 
--- Custom Semiring (TExpQ (Dual d))
+-- Custom Semiring (Code Q (Dual d))
 -- fun :: Int -> (Int, Int)
 -- fun y =
 --   let (f, df) = (y, if X == X then one else zero)
