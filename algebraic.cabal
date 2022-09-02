@@ -34,6 +34,7 @@ library
       Reverse
       Semiring
       SizedMat
+      SizedMat2
       Utils
   other-modules:
       Paths_algebraic
@@ -62,7 +63,10 @@ library
     , containers
     , criterion
     , deepseq
+    , dependent-map
+    , dependent-sum
     , hmatrix
+    , some
   default-language: Haskell2010
 
 executable algebraic-exe
@@ -96,7 +100,10 @@ executable algebraic-exe
     , containers
     , criterion
     , deepseq
+    , dependent-map
+    , dependent-sum
     , hmatrix
+    , some
   default-language: Haskell2010
 
 test-suite algebraic-test
@@ -131,5 +138,8 @@ test-suite algebraic-test
     , containers
     , criterion
     , deepseq
+    , dependent-map
+    , dependent-sum
     , hmatrix
+    , some
   default-language: Haskell2010

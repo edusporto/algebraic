@@ -24,6 +24,9 @@ dependencies:
 - deepseq
 - criterion
 - hmatrix
+- dependent-map
+- dependent-sum
+- some
 
 default-extensions:
 - MultiParamTypeClasses
