@@ -9,6 +9,7 @@
 module Experiments.Ad.Test where
 
 import Language.Haskell.TH
+
 import Data.Map
 import Data.Array.IO
 import Control.Monad.Reader

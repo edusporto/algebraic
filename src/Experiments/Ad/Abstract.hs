@@ -15,6 +15,7 @@ module Experiments.Ad.Abstract where
 import Experiments.Ad.Expressions
 
 import Language.Haskell.TH
+import Language.Haskell.TH.Syntax.Compat
 import Data.Map (Map)
 
 ---------------
@@ -35,14 +36,14 @@ instance {-# OVERLAPPABLE #-} Num a => Semiring a where
   plus   = (+)
   times  = (*)
 
-instance Semiring a => Semiring (Code Q a) where
+instance Semiring a => Semiring (Splice Q a) where
   zero = [|| zero ||]
   one  = [|| one ||]
   plus x y = [|| $$x `plus` $$y ||]
   times x y = [|| $$x `times` $$y ||]
 
 
--- instance {-# OVERLAPPABLE #-} Num a => Semiring (Code Q a) where
+-- instance {-# OVERLAPPABLE #-} Num a => Semiring (Splice Q a) where
 --   zero      = [|| 0 ||]
 --   one       = [|| 1 ||]
 --   plus x y  = [|| $$x + $$y ||]
@@ -54,7 +55,7 @@ instance Semiring a => Semiring (Code Q a) where
 --   plus   = (+)
 --   times  = (*)
 
--- instance Semiring (Code Q Int) where
+-- instance Semiring (Splice Q Int) where
 --   zero      = [|| 0 ||]
 --   one       = [|| 1 ||]
 --   plus x y  = [|| $$x + $$y ||]
@@ -68,7 +69,7 @@ instance Semiring (Expr v) where
   plus   = Plus
   times  = Times
 
-instance Semiring (Code Q (Expr v)) where
+instance Semiring (Splice Q (Expr v)) where
   zero      = [|| Zero ||]
   one       = [|| One ||]
   plus x y  = [|| Plus $$x $$y ||]
@@ -143,7 +144,7 @@ instance Module d e => Semiring (CliffordWeil d e) where
   (CW f df) `plus`  (CW g dg) = CW (f `plus`  g) (df `mappend` dg)
   (CW f df) `times` (CW g dg) = CW (f `times` g) ((f `sact` dg) `mappend` (g `sact` df))
 
--- instance Module d e => Semiring (Code Q (CliffordWeil d e)) where
+-- instance Module d e => Semiring (Splice Q (CliffordWeil d e)) where
 --   zero = [|| CW zero mempty ||]
 --   one  = [|| CW one mempty ||]
 --   plus e1 e2  = [|| let CW f df = $$e1
@@ -181,11 +182,11 @@ abstractD env = eval gen where gen v = CW (env v) (delta v)
 
 abstractDStaged ::
   ( Kronecker v d e,
-    Kronecker (Code Q v) (Code Q d) (Code Q e)
+    Kronecker (Splice Q v) (Splice Q d) (Splice Q e)
   ) =>
-  (Code Q v -> Code Q d) ->
-  Expr (Code Q v) ->
-  Code Q (CliffordWeil d e)
+  (Splice Q v -> Splice Q d) ->
+  Expr (Splice Q v) ->
+  Splice Q (CliffordWeil d e)
 abstractDStaged env = eval gen
   where
     gen v = [||CW $$(env v) $$(delta v)||]
@@ -197,15 +198,15 @@ abstractDExtract env = eCW . abstractD env
 
 abstractDStagedExtract ::
   ( Kronecker v d e,
-    Kronecker (Code Q v) (Code Q d) (Code Q e)
+    Kronecker (Splice Q v) (Splice Q d) (Splice Q e)
   ) =>
-  (Code Q v -> Code Q d) ->
-  Expr (Code Q v) ->
-  Code Q e
+  (Splice Q v -> Splice Q d) ->
+  Expr (Splice Q v) ->
+  Splice Q e
 abstractDStagedExtract env exp = [|| eCW $$(abstractDStaged env exp) ||]
 
 type ExtractedStagedAD v d =
   (Ord v, Semiring d) =>
-  (Code Q v -> Code Q d) ->
-  Expr (Code Q v) ->
-  Code Q (Map v d)
+  (Splice Q v -> Splice Q d) ->
+  Expr (Splice Q v) ->
+  Splice Q (Map v d)

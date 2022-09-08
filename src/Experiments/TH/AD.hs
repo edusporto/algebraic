@@ -13,6 +13,7 @@
 module Experiments.TH.AD where
 
 import Language.Haskell.TH
+import Language.Haskell.TH.Syntax.Compat
 
 -------------------------------------------------------
 -- 2.1 Symbolic Expressions and their Evaluation
@@ -89,17 +90,17 @@ forwardAD var x = eval gen
 -- (5 * (5 + 1), ((5 + 1) * 1) + (1 * (5 + 1)))
 
 -- Still not what we want!
--- >>> (x, dx) = forwardAD (\x -> [|| 5 ||]) X example1 :: (Code Q Int, Code Q Int)
+-- >>> (x, dx) = forwardAD (\x -> [|| 5 ||]) X example1 :: (Splice Q Int, Splice Q Int)
 -- >>> ($$x, $$dx)
 -- (30,11)
 
-instance Semiring d => Semiring (Code Q d) where
+instance Semiring d => Semiring (Splice Q d) where
   zero = [|| zero ||]
   one  = [|| one ||]
   add x y = [|| $$x `add` $$y ||]
   mul x y = [|| $$x `mul` $$y ||]
 
--- instance Semiring d => Semiring (Code Q (Dual d)) where
+-- instance Semiring d => Semiring (Splice Q (Dual d)) where
 --   zero = [|| (zero, zero) ||]
 --   one  = [|| (one,  zero) ||]
 --   add e1 e2 = [|| let (f, df) = $$e1
@@ -111,21 +112,21 @@ instance Semiring d => Semiring (Code Q d) where
 
 forwardADStaged ::
   (Eq v, Semiring d) =>
-  (Code Q v -> Code Q d) ->
-  Code Q v ->
-  Expr (Code Q v) ->
-  Code Q (Dual d)
+  (Splice Q v -> Splice Q d) ->
+  Splice Q v ->
+  Expr (Splice Q v) ->
+  Splice Q (Dual d)
 forwardADStaged var x = eval gen
   where
     gen y = [|| ($$(var y), $$(partialDerive x y)) ||]
     partialDerive x y = [|| if $$x == $$y then one else zero ||]
 
-example2 :: Expr (Code Q X)
+example2 :: Expr (Splice Q X)
 example2 = Mul (Var [||X||]) (Add (Var [||X||]) One)
 
--- >>> result = forwardADStaged (\x -> [||5||]) [||X||] example2 :: Code Q (Int, Int)
+-- >>> result = forwardADStaged (\x -> [||5||]) [||X||] example2 :: Splice Q (Int, Int)
 -- >>> $$(result)
--- Variable not in scope: example2 :: Expr (Code Q X)
+-- Variable not in scope: example2 :: Expr (Splice Q X)
 
 -------------------------------------------------------
 -- 2.2 Algebraic Structures

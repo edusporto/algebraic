@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Redundant bracket" #-}
 
@@ -8,6 +9,8 @@ module Experiments.Ad.Expressions where
 import Data.Array (Ix)
 import Data.Array.IO
 import Language.Haskell.TH
+import Language.Haskell.TH.Syntax.Compat
+import GHC.Generics (Generic)
 
 -----------------
 -- Expressions --
@@ -19,20 +22,19 @@ data Expr v
   |  One
   |  Plus   (Expr v) (Expr v)
   |  Times  (Expr v) (Expr v)
-  deriving Functor
-
+  deriving (Functor, Generic)
 
 instance Show a => Show (Expr a) where
- showsPrec p (Var x)        =  showsPrec p x
- showsPrec p Zero           =  shows 0
- showsPrec p One            =  shows 1
- showsPrec p (Plus e1 e2)   =  showParen (p >= 6) $ (showsPrec 6 e1) . (" + " ++) . (showsPrec 6 e2)
- showsPrec p (Times e1 e2)  =  showParen (p >= 7) $ (showsPrec 7 e1) . (" * " ++) . (showsPrec 7 e2)
+  showsPrec p (Var x)        =  showsPrec p x
+  showsPrec p Zero           =  shows 0
+  showsPrec p One            =  shows 1
+  showsPrec p (Plus e1 e2)   =  showParen (p >= 6) $ (showsPrec 6 e1) . (" + " ++) . (showsPrec 6 e2)
+  showsPrec p (Times e1 e2)  =  showParen (p >= 7) $ (showsPrec 7 e1) . (" * " ++) . (showsPrec 7 e2)
 
 -- example 1
 
 data X = X
-   deriving (Show, Eq, Ord)
+  deriving (Show, Eq, Ord, Generic)
 
 instance Ix X where
   range (X, X) = [X]
@@ -46,7 +48,7 @@ rangeX = (X,X)
 example1 :: Expr X
 example1 = Times (Var X) (Plus (Var X) One)
 
-example1Staged :: Expr (Code Q X)
+example1Staged :: Expr (Splice Q X)
 example1Staged = Times (Var [||X||]) (Plus (Var [||X||]) One)
 
 -- example 2

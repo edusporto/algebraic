@@ -16,6 +16,16 @@ import Experiments.Ad.Expressions
 import Experiments.Ad.Forward
 import Experiments.Ad.Reverse
 import Language.Haskell.TH
+import Language.Haskell.TH.Syntax.Compat
+
+import Test.QuickCheck
+import Generic.Random
+
+vars :: SpliceQ X
+vars = [||X||]
+
+instance Arbitrary a => Arbitrary (Expr a) where
+  arbitrary = genericArbitraryRec uniform `withBaseCase` return One
 
 main :: IO ()
-main = print "hi!"
+main = sample (arbitrary :: Gen (Expr ()))

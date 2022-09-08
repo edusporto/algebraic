@@ -9,9 +9,10 @@ module Experiments.TH.TestAD where
 
 import Experiments.TH.AD
 import Language.Haskell.TH
+import Language.Haskell.TH.Syntax.Compat
 
 fun :: Int -> (Int, Int)
-fun = $$([||\y -> $$(forwardADStaged (\x -> [||y||]) [||X||] example2 :: Code Q (Int, Int))||])
+fun = $$([||\y -> $$(forwardADStaged (\x -> [||y||]) [||X||] example2 :: Splice Q (Int, Int))||])
 
 -- NO custom Semiring (Code Q (Dual d))
 -- fun :: Int -> (Int, Int)

@@ -3,7 +3,7 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE OverlappingInstances #-}
+-- {-# LANGUAGE OverlappingInstances #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Avoid lambda using `infix`" #-}
@@ -22,6 +22,7 @@ import Prelude hiding (map)
 import Data.Array.Base (MArray(..))
 import Control.Monad.Reader
 import Language.Haskell.TH
+import Language.Haskell.TH.Syntax.Compat
 
 import Experiments.Ad.Expressions
 import Experiments.Ad.Abstract
@@ -57,7 +58,7 @@ instance Kronecker v d e => Kronecker v d (Hom d e) where
 
 -- optimized instance
 
-instance (Ord v, Semiring d) => Kronecker v d (Hom d (SparseSA v d)) where
+instance {-# OVERLAPS #-} (Ord v, Semiring d) => Kronecker v d (Hom d (SparseSA v d)) where
   delta v = Hom (\d -> Sparse (singleton v (SA d)))
 
 -- reverse mode AD
@@ -65,29 +66,29 @@ instance (Ord v, Semiring d) => Kronecker v d (Hom d (SparseSA v d)) where
 reverseAD :: (Ord v, Semiring d) => (v -> d) -> Expr v -> CliffordWeil d (Hom d (SparseSA v d))
 reverseAD = abstractD
 
-instance Semigroup e => Semigroup (Code Q (Hom d e)) where
+instance Semigroup e => Semigroup (SpliceQ (Hom d e)) where
   (<>) e1 e2 = [|| let (Hom f) = $$e1
                        (Hom g) = $$e2
                     in Hom (\d -> f d <> g d) ||]
-  
-instance Monoid e => Monoid (Code Q (Hom d e)) where
+
+instance Monoid e => Monoid (SpliceQ (Hom d e)) where
   mempty = [|| Hom (\d -> mempty) ||]
 
-instance Module d e => Module (Code Q d) (Code Q (Hom d e)) where
+instance Module d e => Module (SpliceQ d) (SpliceQ (Hom d e)) where
   sact d' e2 = [|| let (Hom f) = $$e2
                     in Hom (\d -> f ($$d' `times` d)) ||]
 
-instance Kronecker v d e => Kronecker (Code Q v) (Code Q d) (Code Q (Hom d e)) where
+instance Kronecker v d e => Kronecker (SpliceQ v) (SpliceQ d) (SpliceQ (Hom d e)) where
   delta v = [|| Hom (\d -> d `sact` delta $$v) ||]
 
-instance (Ord v, Semiring d) => Kronecker (Code Q v) (Code Q d) (Code Q (Hom d (SparseSA v d))) where
+instance {-# OVERLAPS #-} (Ord v, Semiring d) => Kronecker (SpliceQ v) (SpliceQ d) (SpliceQ (Hom d (SparseSA v d))) where
   delta v = [|| Hom (\d -> Sparse (singleton $$v (SA d))) ||]
 
 reverseADStaged ::
   (Ord v, Semiring d) =>
-  (Code Q v -> Code Q d) ->
-  Expr (Code Q v) ->
-  Code Q (CliffordWeil d (Hom d (SparseSA v d)))
+  (SpliceQ v -> SpliceQ d) ->
+  Expr (SpliceQ v) ->
+  SpliceQ (CliffordWeil d (Hom d (SparseSA v d)))
 reverseADStaged = abstractDStaged
 
 -- with extraction function
@@ -97,9 +98,9 @@ reverseADExtract gen = sparseSA . absHom . eCW . reverseAD gen
 
 reverseADStagedExtract ::
   (Ord v, Semiring d) =>
-  (Code Q v -> Code Q d) ->
-  Expr (Code Q v) ->
-  Code Q (Map v d)
+  (SpliceQ v -> SpliceQ d) ->
+  Expr (SpliceQ v) ->
+  SpliceQ (Map v d)
 reverseADStagedExtract env exp = [|| (sparseSA . absHom . eCW) $$(reverseADStaged env exp) ||]
 
 -- example
@@ -124,7 +125,7 @@ absEndo (E f) = f mempty
 instance Semigroup (Endo e) where
   E f <> E g = E (g . f)
 
-instance Semigroup (Code Q (Endo e)) where
+instance Semigroup (SpliceQ (Endo e)) where
   (<>) e1 e2 = [|| let (E f) = $$e1
                        (E g) = $$e2
                     in E (g . f) ||]
@@ -132,25 +133,26 @@ instance Semigroup (Code Q (Endo e)) where
 instance Monoid (Endo e) where
   mempty = E id
 
-instance Monoid (Code Q (Endo e)) where
+instance Monoid (SpliceQ (Endo e)) where
   mempty = [|| E id ||]
 
 instance Module d e => Module d (Endo e) where
   d `sact` E f = E (\e -> f (d `sact` e))
 
-instance Module d e => Module (Code Q d) (Code Q (Endo e)) where
+instance Module d e => Module (SpliceQ d) (SpliceQ (Endo e)) where
   d `sact` e2 = [|| let (E f) = $$e2
                      in E (\e -> f ($$d `sact` e)) ||]
 
 -- optimized version
 
-instance (Ord v, Semiring d) => Kronecker v d (Hom d (Endo (Sparse v (SemiringAsAlgebra d)))) where
+instance {-# OVERLAPS #-} (Ord v, Semiring d) => Kronecker v d (Hom d (Endo (Sparse v (SemiringAsAlgebra d)))) where
   delta v = Hom (\d -> E (\e -> Sparse (insertWith plus v (SA d) (sparse e))))
 
-instance (Ord v, Semiring d) =>
-  Kronecker (Code Q v)
-            (Code Q d)
-            (Code Q (Hom d (Endo (Sparse v (SemiringAsAlgebra d))))) where
+instance {-# OVERLAPS #-}
+  (Ord v, Semiring d) =>
+  Kronecker (SpliceQ v)
+            (SpliceQ d)
+            (SpliceQ (Hom d (Endo (Sparse v (SemiringAsAlgebra d))))) where
   delta v = [|| Hom (\d -> E (\e -> Sparse (insertWith plus $$v (SA d) (sparse e)))) ||]
 
 reverseADEndo :: (Ord v, Semiring d) =>
@@ -159,9 +161,9 @@ reverseADEndo = abstractD
 
 reverseADEndoStaged ::
   (Ord v, Semiring d) =>
-  (Code Q v -> Code Q d) ->
-  Expr (Code Q v) ->
-  Code Q (CliffordWeil d (Hom d (Endo (SparseSA v d))))
+  (SpliceQ v -> SpliceQ d) ->
+  Expr (SpliceQ v) ->
+  SpliceQ (CliffordWeil d (Hom d (Endo (SparseSA v d))))
 reverseADEndoStaged = abstractDStaged
 
 -- with extraction function
@@ -171,9 +173,9 @@ reverseADEndoExtract gen = sparseSA . absEndo . absHom . eCW . reverseADEndo gen
 
 reverseADEndoStagedExtract ::
   (Ord v, Semiring d) =>
-  (Code Q v -> Code Q d) ->
-  Expr (Code Q v) ->
-  Code Q (Map v d)
+  (SpliceQ v -> SpliceQ d) ->
+  Expr (SpliceQ v) ->
+  SpliceQ (Map v d)
 reverseADEndoStagedExtract env exp = [|| (sparseSA . absEndo . absHom . eCW) $$(reverseADEndoStaged env exp) ||]
 
 -- example
@@ -192,7 +194,7 @@ newtype SM d m = SM { sm :: m () }
 instance Monad m => Semigroup (SM d m) where
   SM com <> SM com' = SM (com >> com')
 
-instance Monad m => Semigroup (Code Q (SM d m)) where
+instance Monad m => Semigroup (SpliceQ (SM d m)) where
   e1 <> e2 = [|| let (SM com)  = $$e1 
                      (SM com') = $$e2 
                   in SM (com >> com') ||]
@@ -200,7 +202,7 @@ instance Monad m => Semigroup (Code Q (SM d m)) where
 instance Monad m => Monoid (SM d m) where
   mempty = SM $ return ()
 
-instance Monad m => Monoid (Code Q (SM d m)) where
+instance Monad m => Monoid (SpliceQ (SM d m)) where
   mempty = [|| SM $ return () ||]
 
 -- reader monad combined with array monad
@@ -216,7 +218,7 @@ instance (Algebra d e, MReadArray arr v e m) => Module d (SM d m) where
   d `sact` com = SM $ do sm com; arr <- ask; b <- getBounds arr ; forM_ (range b) (modifyArrayAt (d `sact`))
 
 instance (Algebra d e, MReadArray arr v e m) =>
-  Module (Code Q d) (Code Q (SM d m)) where
+  Module (SpliceQ d) (SpliceQ (SM d m)) where
   e1 `sact` e2 = [|| let d = $$e1
                          com = $$e2
                       in SM $ do
@@ -229,16 +231,16 @@ instance (Algebra d e, MReadArray arr v e m) => Kronecker v d (SM d m) where
   delta v = SM $ modifyArrayAt (`mappend` one) v
 
 instance (Algebra d e, MReadArray arr v e m) =>
-  Kronecker (Code Q v) (Code Q d) (Code Q (SM d m)) where
+  Kronecker (SpliceQ v) (SpliceQ d) (SpliceQ (SM d m)) where
   delta v = [|| SM $ modifyArrayAt (`mappend` one) $$v ||]
 
-instance (Algebra d e, MReadArray arr v e m) => Kronecker v d (Hom d (SM d m)) where
+instance {-# OVERLAPS #-} (Algebra d e, MReadArray arr v e m) => Kronecker v d (Hom d (SM d m)) where
   delta v = Hom (\d -> SM $ modifyArrayAt (`mappend` (shom d)) v)
 
-instance (Algebra d e, MReadArray arr v e m) =>
-  Kronecker (Code Q v)
-            (Code Q d)
-            (Code Q (Hom d (SM d m))) where
+instance {-# OVERLAPS #-} (Algebra d e, MReadArray arr v e m) =>
+  Kronecker (SpliceQ v)
+            (SpliceQ d)
+            (SpliceQ (Hom d (SM d m))) where
   delta v = [|| Hom (\d -> SM $ modifyArrayAt (`mappend` (shom d)) $$v) ||]
 
 -- reverseAD
@@ -249,9 +251,9 @@ reverseADArray = abstractD
 
 reverseADArrayStaged ::
   (Algebra d e, MReadArray arr v e m) =>
-  (Code Q v -> Code Q d) ->
-  Expr (Code Q v) ->
-  Code Q (CliffordWeil d (Hom d (SM d m)))
+  (SpliceQ v -> SpliceQ d) ->
+  Expr (SpliceQ v) ->
+  SpliceQ (CliffordWeil d (Hom d (SM d m)))
 reverseADArrayStaged = abstractDStaged
 
 -- with extraction functions
@@ -261,9 +263,9 @@ reverseADArrayExtract gen = absHom . eCW . reverseADArray gen
 
 reverseADArrayStagedExtract ::
   (Algebra d e, MReadArray arr v e m) =>
-  (Code Q v -> Code Q d) ->
-  Expr (Code Q v) ->
-  Code Q (SM d m)
+  (SpliceQ v -> SpliceQ d) ->
+  Expr (SpliceQ v) ->
+  SpliceQ (SM d m)
 reverseADArrayStagedExtract env exp = [|| (absHom . eCW) $$(reverseADArrayStaged env exp) ||]
 
 -- for IO
@@ -276,10 +278,10 @@ reverseAD_CY_IO_extract gen e rng = do (arr :: IOArray v (SemiringAsAlgebra d)) 
 
 reverseAD_CY_IO_Staged_Extract ::
   forall v d. (Ix v, Semiring d) =>
-  (Code Q v -> Code Q d) ->
-  Expr (Code Q v) ->
-  Code Q (v, v)
-  -> Code Q (IO (Map v d))
+  (SpliceQ v -> SpliceQ d) ->
+  Expr (SpliceQ v) ->
+  SpliceQ (v, v)
+  -> SpliceQ (IO (Map v d))
 reverseAD_CY_IO_Staged_Extract gen e rng = [|| do 
   (arr :: IOArray v (SemiringAsAlgebra d)) <- newArray $$rng zero
   runReaderT (sm $$(reverseADArrayStagedExtract gen e)) arr
