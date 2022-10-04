@@ -68,6 +68,8 @@ executables:
     - -rtsopts
     - -O2
     - -with-rtsopts=-N
+    - -fspecialise-aggressively
+    - -fforce-recomp
     # - -fno-full-laziness 
     # ^ http://www.serpentine.com/criterion/tutorial.html#beware-pretend-io
     dependencies:
@@ -80,6 +82,7 @@ executables:
     - -rtsopts
     - -O2
     - -with-rtsopts=-N
+    - -fspecialise-aggressively
     dependencies:
     - algebraic
   algebraic-core:
@@ -91,14 +94,23 @@ executables:
     - -O2
     - -with-rtsopts=-N
     - -ddump-to-file
-    - -dsuppress-coercions
-    - -dsuppress-module-prefixes
-    - -dsuppress-type-applications
+    - -fspecialise-aggressively
+    - -fexpose-all-unfoldings
+    # 
+    - -fdicts-cheap
+    - -funfolding-dict-discount=1000
+    # 
+    # - -dsuppress-coercions
+    # - -dsuppress-module-prefixes
+    # - -dsuppress-type-applications
     - -ddump-ds
     - -ddump-spec
     - -ddump-simpl
+    - -fforce-recomp
+    - -fplugin GhcDump.Plugin
     dependencies:
     - algebraic
+    - ghc-dump-core
 
 tests:
   algebraic-test:

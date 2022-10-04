@@ -26,8 +26,8 @@ generateTupleClass size = do
     r = mkName "r"
 
     -- class TupleX t r | t -> r where
-    cDecl = ClassD [] className [PlainTV t, PlainTV r] [FunDep [t] [r]] [mDecl]    -- GHC 8
-    -- cDecl = ClassD [] className [PlainTV t (), PlainTV r ()] [FunDep [t] [r]] [mDecl] -- GHC 9
+    -- cDecl = ClassD [] className [PlainTV t, PlainTV r] [FunDep [t] [r]] [mDecl]    -- GHC 8
+    cDecl = ClassD [] className [PlainTV t (), PlainTV r ()] [FunDep [t] [r]] [mDecl] -- GHC 9
 
     -- _X :: t -> r
     mDecl = SigD methodName (AppT (AppT ArrowT (VarT t)) (VarT r))

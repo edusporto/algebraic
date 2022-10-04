@@ -129,7 +129,7 @@ variance introduced by outliers: 97% (severely inflated)
 
 -------------------------
 
-With profiling on:
+-- With profiling on:
 
 benchmarking AD/forwardAD
 time                 140.5 μs   (135.0 μs .. 147.3 μs)

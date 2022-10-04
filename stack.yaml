@@ -1,4 +1,8 @@
 packages:
 - .
 resolver:
-  url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/18/19.yaml
+  # url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/18/19.yaml
+  url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/19/25.yaml
+
+extra-deps:
+- ghc-dump-core-0.2.1.0@sha256:715a83da6c8f16c697517886b2872a99d0548632b01813f575143a29ac813d59,2459

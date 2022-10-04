@@ -3,11 +3,18 @@
 # For more information, please see the documentation at:
 #   https://docs.haskellstack.org/en/stable/lock_files
 
-packages: []
+packages:
+- completed:
+    hackage: ghc-dump-core-0.2.1.0@sha256:715a83da6c8f16c697517886b2872a99d0548632b01813f575143a29ac813d59,2459
+    pantry-tree:
+      sha256: fbb5e5964f7d09f8ebc00844ac654c5051ce47d9d8f33b87bcc3a34627c5030b
+      size: 330
+  original:
+    hackage: ghc-dump-core-0.2.1.0@sha256:715a83da6c8f16c697517886b2872a99d0548632b01813f575143a29ac813d59,2459
 snapshots:
 - completed:
-    size: 586103
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/18/19.yaml
-    sha256: 32716534fff554b7f90762130fdb985cabf29f157758934dd1c8f3892a646430
+    sha256: 1ecad1f0bd2c27de88dbff6572446cfdf647c615d58a7e2e2085c6b7dfc04176
+    size: 619403
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/19/25.yaml
   original:
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/18/19.yaml
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/19/25.yaml

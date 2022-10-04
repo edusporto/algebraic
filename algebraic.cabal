@@ -101,7 +101,7 @@ executable algebraic-benchmark
       ScopedTypeVariables
   other-extensions:
       TemplateHaskell
-  ghc-options: -threaded -rtsopts -O2 -with-rtsopts=-N
+  ghc-options: -threaded -rtsopts -O2 -with-rtsopts=-N -fspecialise-aggressively -fforce-recomp
   build-depends:
       QuickCheck
     , algebraic
@@ -136,7 +136,7 @@ executable algebraic-core
       ScopedTypeVariables
   other-extensions:
       TemplateHaskell
-  ghc-options: -threaded -rtsopts -O2 -with-rtsopts=-N -ddump-to-file -dsuppress-coercions -dsuppress-module-prefixes -dsuppress-type-applications -ddump-ds -ddump-spec -ddump-simpl
+  ghc-options: -threaded -rtsopts -O2 -with-rtsopts=-N -ddump-to-file -fspecialise-aggressively -fexpose-all-unfoldings -fdicts-cheap -funfolding-dict-discount=1000 -ddump-ds -ddump-spec -ddump-simpl -fforce-recomp -fplugin GhcDump.Plugin
   build-depends:
       QuickCheck
     , algebraic
@@ -146,6 +146,7 @@ executable algebraic-core
     , criterion
     , deepseq
     , generic-random
+    , ghc-dump-core
     , ghc-prof
     , mtl
     , template-haskell
@@ -206,7 +207,7 @@ executable algebraic-profile
       ScopedTypeVariables
   other-extensions:
       TemplateHaskell
-  ghc-options: -threaded -rtsopts -O2 -with-rtsopts=-N
+  ghc-options: -threaded -rtsopts -O2 -with-rtsopts=-N -fspecialise-aggressively
   build-depends:
       QuickCheck
     , algebraic
